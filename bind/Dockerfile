@@ -1,5 +1,6 @@
 FROM alpine:3.8
 RUN    apk add bind \
+    && apk add bind-tools \
     && mkdir -p /var/cache/bind
 #   XXX don't forget control port!
 EXPOSE 53 53/udp

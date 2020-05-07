@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 set -e -o pipefail
 trap 'echo 1>&2 FAILED; exit 1' 0
+docker='sudo docker'
 
 die() { echo 1>&2 "$(basename "$0"):" "$@"; exit 1; }
 
 base=$(cd "$(dirname "$0")" && pwd -P)
 cd $base
 sudo -v || die 'Cannot sudo to run docker'
-docker='sudo docker'
 
 #   We always build a test image; it's tagged :latest by hand.
 image=capps-bind:test
 
 [[ $1 = -n ]] || $docker build -t $image -q .
 
-version=$(./capps-named -T --rm --detach=false -- -v)
-[[ $version = 'BIND 9'* ]] || die "FAIL: unexpected version: $version"
+docker_args='--rm --detach=true'
+$base/capps-named -T -C $base/tconfig $docker_args
+
+record=$(dig friendofdog.com @127.0.0.1 -p 1053)
+[[ $record == *"dns1.friendofdog.com."* ]] || \
+die "FAIL: named did not return expected DNS records, instead received$record"
 
 trap '' 0
 echo OK
