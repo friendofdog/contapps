@@ -1,0 +1,16 @@
+@	SOA	dns1.friendofdog.com.	hostmaster.friendofdog.com. (
+		2001062501
+		21600
+		3600
+		604800
+		86400)
+;
+;
+	NS	dns1.friendofdog.com.
+	NS	dns2.friendofdog.com.
+dns1	A	10.0.2.1
+	AAAA	aaaa:bbbb::1
+dns2	A	10.0.2.2
+	AAAA	aaaa:bbbb::2
+;
+;

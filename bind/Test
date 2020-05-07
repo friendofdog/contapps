@@ -1,21 +1,42 @@
 #!/usr/bin/env bash
 set -e -o pipefail
-trap 'echo 1>&2 FAILED; exit 1' 0
 
-die() { echo 1>&2 "$(basename "$0"):" "$@"; exit 1; }
+passed=false
+cleanup() {
+    [[ -f $cidfile ]] && $docker stop $(cat "$cidfile") 1>/dev/null
+    $passed || { echo 1>&2 FAILED; exit 1; }
+}
+trap cleanup EXIT
 
-base=$(cd "$(dirname "$0")" && pwd -P)
-cd $base
+die() { echo 1>&2 -e "$(basename "$0"):" "$@"; exit 1; }
+
+####################################################################
+
 sudo -v || die 'Cannot sudo to run docker'
 docker='sudo docker'
 
+base=$(cd "$(dirname "$0")" && pwd -P)
+build="$base/.build/"
+cidfile="$build/test.cid"
+
 #   We always build a test image; it's tagged :latest by hand.
 image=capps-bind:test
+[[ $1 = -n ]] || $docker build -t $image -q "$base"
 
-[[ $1 = -n ]] || $docker build -t $image -q .
+mkdir -p "$build"
+rm -f "$cidfile"
+$base/capps-named -T -C $base/tconfig \
+    --rm --cidfile "$cidfile" --detach=true \
+    # add docker opt to make it choose port
 
-version=$(./capps-named -T --rm --detach=false -- -v)
-[[ $version = 'BIND 9'* ]] || die "FAIL: unexpected version: $version"
+port=$(docker inspect \
+    --format='{{(index (index .NetworkSettings.Ports "53/tcp") 0).HostPort}}' \
+    $(cat "$cidfile")
+)
 
-trap '' 0
-echo OK
+record=$(dig friendofdog.com @127.0.0.1 -p $port)
+[[ $record == *"dns1.friendofdog.com."* ]] || \
+die "named did not return expected DNS records, instead received\n$record"
+
+passed=true; echo OK
+
