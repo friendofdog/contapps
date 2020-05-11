@@ -53,6 +53,6 @@ esac; done
 #   XXX Always using --rm means we need to move logs outside container.
 $docker run --rm --detach=true \
     "${logopts[@]}" -v /dev/log:/dev/log \
-    -v $configdir:/etc/bind:ro \
+    -v $configdir:/etc/bind \
     -p $port:53 -p $port:53/udp \
     "${dockerargs[@]}" $image $namedargs "$@"
