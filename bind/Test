@@ -21,7 +21,7 @@ image=capps-bind:test
 [[ $1 = -n ]] || $docker build -t $image -q .
 
 docker_args='--rm --name capps-bind --detach=true'
-version=$(./capps-named -T -C $(pwd)/test-config $docker_args)
+version=$(./capps-named -T -C $(pwd)/tconfig $docker_args)
 
 record=$($docker exec -it capps-bind dig SOA example.com @127.0.0.1)
 [[ $record == *"dns1.example.com."* ]] || \
