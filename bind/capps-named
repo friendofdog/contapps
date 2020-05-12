@@ -24,6 +24,7 @@ die() { echo 1>&2 "$(basename "$0"):" "$@"; exit 1; }
 
 base=$(cd "$(dirname "$0")" && pwd -P)
 cd $base
+[[ $(stat -c '%a' "${base}/tconfig") = 777 ]] || chmod 777 "${base}/tconfig"
 sudo -v || die 'Cannot sudo to run docker'
 docker='sudo docker'
 
