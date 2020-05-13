@@ -9,9 +9,7 @@ die() {
 }
 
 cleanup() {
-    cid=$(<./.build/test.cid)
     $docker stop $cid 1>/dev/null
-    rm -f ./.build/test.cid
 }
 
 base=$(cd "$(dirname "$0")" && pwd -P)
@@ -25,6 +23,8 @@ image=capps-bind:test
 
 docker_args='--rm --cidfile ./.build/test.cid --detach=true'
 version=$(./capps-named -T -C $(pwd)/tconfig $docker_args)
+cid=$(<$base/.build/test.cid)
+rm -f $base/.build/test.cid
 
 record=$(dig friendofdog.com @127.0.0.1 -p 1053)
 [[ $record == *"dns1.friendofdog.com."* ]] || \
