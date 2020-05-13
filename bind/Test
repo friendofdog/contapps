@@ -23,8 +23,8 @@ image=capps-bind:test
 docker_args='--rm --name capps-bind --detach=true'
 version=$(./capps-named -T -C $(pwd)/tconfig $docker_args)
 
-record=$($docker exec -it capps-bind dig SOA example.com @127.0.0.1)
-[[ $record == *"dns1.example.com."* ]] || \
+record=$($docker exec -it capps-bind dig SOA friendofdog.com @127.0.0.1)
+[[ $record == *"dns1.friendofdog.com."* ]] || \
 die "FAIL: named did not return expected DNS records, instead received$record"
 
 #[[ $version = 'BIND 9'* ]] || die "FAIL: unexpected version: $version"
