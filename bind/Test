@@ -9,9 +9,9 @@ die() {
 }
 
 cleanup() {
-    cid=$(<./tconfig/test.cid)
+    cid=$(<./.build/test.cid)
     $docker stop $cid 1>/dev/null
-    rm -f ./tconfig/test.cid
+    rm -f ./.build/test.cid
 }
 
 base=$(cd "$(dirname "$0")" && pwd -P)
@@ -23,7 +23,7 @@ image=capps-bind:test
 
 [[ $1 = -n ]] || $docker build -t $image -q .
 
-docker_args='--rm --cidfile ./tconfig/test.cid --detach=true'
+docker_args='--rm --cidfile ./.build/test.cid --detach=true'
 version=$(./capps-named -T -C $(pwd)/tconfig $docker_args)
 
 record=$(dig friendofdog.com @127.0.0.1 -p 1053)
