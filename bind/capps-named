@@ -50,9 +50,12 @@ while true; do case "$1" in
     *)      dockerargs+=("$1"); shift;;
 esac; done
 
+gid=$(stat -c %g $base/tconfig)
+
 #   XXX Always using --rm means we need to move logs outside container.
 $docker run --rm --detach=true \
     "${logopts[@]}" -v /dev/log:/dev/log \
-    -v $configdir:/etc/bind:ro \
+    -v $configdir:/etc/bind \
     -p $port:53 -p $port:53/udp \
+    -u root:$gid \
     "${dockerargs[@]}" $image $namedargs "$@"
