@@ -22,6 +22,7 @@ mail	A	10.0.2.5
 	AAAA	aaaa:bbbb::5
 mail2	A	10.0.2.6
 	AAAA	aaaa:bbbb::6
+@	TXT	10	"thisisatextrecord"
 ;
 ;
 ; This sample zone file illustrates sharing the same IP addresses for
