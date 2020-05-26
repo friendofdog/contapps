@@ -14,6 +14,10 @@ cleanup() {
 
 base=$(cd "$(dirname "$0")" && pwd -P)
 cd $base
+
+. ./activate
+#pytest -q "$@"
+
 sudo -v || die 'Cannot sudo to run docker'
 
 #   We always build a test image; it's tagged :latest by hand.
@@ -26,8 +30,9 @@ version=$(./capps-named -T -C $(pwd)/tconfig $docker_args)
 cid=$(<$base/.build/test.cid)
 rm -f $base/.build/test.cid
 
-record=$(dig friendofdog.com @127.0.0.1 -p 1053)
-[[ $record == *"dns1.friendofdog.com."* ]] || \
+record=$(python test_client.py)
+
+[[ $record == *"thisisatextrecord"* ]] || \
 die "FAIL: named did not return expected DNS records, instead received$record"
 
 #[[ $version = 'BIND 9'* ]] || die "FAIL: unexpected version: $version"
