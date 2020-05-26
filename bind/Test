@@ -1,15 +1,9 @@
 #!/usr/bin/env bash
-set -e -o pipefail
-trap 'echo 1>&2 FAILED; exit 1' 0
-docker='sudo docker'
+set -eu -o pipefail
 
 die() {
     echo 1>&2 "$(basename "$0"):" "$@";
     exit 1;
-}
-
-cleanup() {
-    $docker stop $cid 1>/dev/null
 }
 
 base=$(cd "$(dirname "$0")" && pwd -P)
@@ -19,25 +13,17 @@ cd $base
 #pytest -q "$@"
 
 sudo -v || die 'Cannot sudo to run docker'
+py="sudo $base/.build/virtualenv/bin/python3"
 
 #   We always build a test image; it's tagged :latest by hand.
 image=capps-bind:test
 
-[[ $1 = -n ]] || $docker build -t $image -q .
+#pytest -q "$@"
 
-docker_args='--rm --cidfile ./.build/test.cid --detach=true'
-version=$(./capps-named -T -C $(pwd)/tconfig $docker_args)
-cid=$(<$base/.build/test.cid)
-rm -f $base/.build/test.cid
-
-record=$(python test_client.py)
+server=$($py capps-named.py)
+record=$($py test_client.py $server)
 
 [[ $record == *"thisisatextrecord"* ]] || \
-die "FAIL: named did not return expected DNS records, instead received$record"
+die "FAIL: named did not return expected DNS records, instead received $record"
 
-#[[ $version = 'BIND 9'* ]] || die "FAIL: unexpected version: $version"
-
-trap '' 0
 echo OK
-
-trap cleanup EXIT
