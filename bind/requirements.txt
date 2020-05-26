@@ -1,0 +1,4 @@
+# set up Python environment for testing
+pytest==5.4.1
+# make test DNS request to server
+dnspython==1.16.0
