@@ -29,6 +29,7 @@ docker='sudo docker'
 
 image=capps-bind:latest
 configdir=/etc/bind         # Uses named.conf in this dir
+volume=named_config
 logopts=()
 portbind='-p 53:53 -p 53:53/udp'
 dockerargs=()
@@ -36,6 +37,9 @@ while true; do case "$1" in
     -C)     #   -C <configdir>
             shift; configdir="$1"; shift;
             [[ $configdir = /* ]] || die '-C configdir must start with /'
+            ;;
+    -V)     #   Docker volume
+            shift; volume="$1"; shift;
             ;;
     -L)     #   Log stdout/err to systemd journal; doesn't affect /dev/log
             shift
@@ -50,12 +54,22 @@ while true; do case "$1" in
     *)      dockerargs+=("$1"); shift;;
 esac; done
 
+[[ $($docker volume ls | grep $volume) ]] && \
+    $docker volume rm test_config 1>/dev/null
+
+$docker volume create --name $volume \
+    --opt type=tmpfs \
+    --opt device=$configdir \
+    --opt o=bind \
+    1>/dev/null
+
 gid=$(stat -c %g $base/tconfig)
 
 #   XXX Always using --rm means we need to move logs outside container.
 $docker run --rm --detach=true \
     "${logopts[@]}" -v /dev/log:/dev/log \
-    -v $configdir:/etc/bind \
+    -v $volume:/etc/bind \
     $portbind \
     -u root:$gid \
-    "${dockerargs[@]}" $image $namedargs "$@"
+    "${dockerargs[@]}" $image $namedargs "$@" \
+    1>/dev/null

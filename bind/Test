@@ -25,7 +25,8 @@ image=capps-bind:test
 
 mkdir -p "$build"
 rm -f "$cidfile"
-$base/capps-named -T -C $base/tconfig \
+
+$base/capps-named -T -C $base/tconfig -V test_config \
     --rm --cidfile "$cidfile" --detach=true \
     # add docker opt to make it choose port
 
