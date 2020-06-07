@@ -30,7 +30,7 @@ docker='sudo docker'
 image=capps-bind:latest
 configdir=/etc/bind         # Uses named.conf in this dir
 logopts=()
-port=53
+portbind='-p 53:53 -p 53:53/udp'
 dockerargs=()
 while true; do case "$1" in
     -C)     #   -C <configdir>
@@ -43,7 +43,7 @@ while true; do case "$1" in
             logopts+=("--log-opt=tag={{.ImageName}}:{{.Name}}")
             ;;
     -T)     #   Test mode; you may want to add --detach=false
-            shift; image=capps-bind:test; port=1053; namedargs=-g
+            shift; image=capps-bind:test; portbind=-P; namedargs=-g
             ;;
     --)     shift; break;;              # named args follow
     '')     break;;
@@ -56,6 +56,6 @@ gid=$(stat -c %g $base/tconfig)
 $docker run --rm --detach=true \
     "${logopts[@]}" -v /dev/log:/dev/log \
     -v $configdir:/etc/bind \
-    -p $port:53 -p $port:53/udp \
+    $portbind \
     -u root:$gid \
     "${dockerargs[@]}" $image $namedargs "$@"
