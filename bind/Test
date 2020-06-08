@@ -35,9 +35,13 @@ port=$(docker inspect \
     $(cat "$cidfile")
 )
 
-record=$(dig friendofdog.com @127.0.0.1 -p $port)
-[[ $record == *"dns1.friendofdog.com."* ]] || \
+record_pass=$(dig friendofdog.com @127.0.0.1 -p $port)
+[[ $record_pass == *"dns1.friendofdog.com."* ]] || \
 die "named did not return expected DNS records, instead received\n$record"
+
+record_fail=$(dig friendofdogfail.com @127.0.0.1 -p $port)
+[[ $record_fail == *"status: SERVFAIL"* ]] || \
+die "named should have failed, instead received\n$record"
 
 passed=true; echo OK
 
